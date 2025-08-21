@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A simple Discord bot",
   "main": "src/bot.ts",
-  "type": "module",
   "scripts": {
     "start": "ts-node src/bot.ts",
     "build": "tsc",

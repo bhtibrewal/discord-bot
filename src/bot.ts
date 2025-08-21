@@ -1,6 +1,6 @@
 import { Client, Events, GatewayIntentBits } from "discord.js";
-import { default as CommandHandler } from "./commands/index.ts";
-import { config } from "./config.ts";
+import { default as CommandHandler } from "./commands/index";
+import { config } from "./config";
 
 const client = new Client({
   intents: [
@@ -19,13 +19,13 @@ client.on(Events.MessageCreate, (message) => {
   console.log(`Received message: ${message.content}`);
   if (message.author.bot) return;
   message.reply(`hello ${message.author.username}`)
-
-//   commandHandler.execute(message);
 });
 
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  await commandHandler.execute(interaction);
+  if (interaction.isChatInputCommand()) {
+    await commandHandler.execute(interaction);
+  }
 });
 
 (async () => {

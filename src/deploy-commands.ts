@@ -2,8 +2,8 @@ import {
   REST,
   Routes,
 } from "discord.js";
-import { config } from "./config.ts";
-import CommandHandler from "./commands/index.ts";
+import { config } from "./config";
+import CommandHandler from "./commands/index";
 
 
 const commandHandler = new CommandHandler();

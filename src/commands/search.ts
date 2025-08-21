@@ -1,12 +1,10 @@
 import {
-  CommandInteraction,
-  SlashCommandBuilder,
+  ChatInputCommandInteraction,
   TextChannel,
   Message,
-  Collection,
 } from "discord.js";
 
-export async function execute(interaction: CommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   // Defer reply as this operation might take some time
   await interaction.deferReply();
 
@@ -33,33 +31,82 @@ export async function execute(interaction: CommandInteraction) {
     );
 
     // Search through each channel
-    await Promise.all(
-      Array.from(textChannels.values()).map(async (channel: TextChannel) => {
-        try {
-          let messages: Collection<string, Message> =
-            await channel.messages.fetch({ limit: 100 });
+    const textChannelsArray = Array.from(textChannels.values());
+    const totalChannels = textChannelsArray.length;
+    let processedChannels = 0;
 
+    // Initial progress message
+    await interaction.editReply(
+      `Starting search in ${totalChannels} channels...`
+    );
+
+    for (const channel of textChannelsArray) {
+      try {
+        processedChannels++;
+        let lastMessageId: string | undefined;
+        let messagesFound = 0;
+
+        // Update progress every channel
+        await interaction.editReply(
+          `Searching channel ${processedChannels}/${totalChannels}: #${channel.name}\n` +
+            `Messages found so far: ${results.length}`
+        );
+
+        while (true) {
+          // Fetch messages in batches of 100
+          const options: { limit: number; before?: string } = { limit: 100 };
+          if (lastMessageId) options.before = lastMessageId;
+
+          const messages = await channel.messages.fetch(options);
+          if (messages.size === 0) break; // No more messages
+
+          // Update lastMessageId for next iteration
+          lastMessageId = messages.last()?.id;
+
+          // Process messages in this batch
           messages.forEach((message: Message) => {
             if (
-              message.content &&
               message.content.toLowerCase().includes(word.toLowerCase()) &&
-              message.content.length >= charLimit
+              message.content.length >= parseInt(charLimit)
             ) {
               results.push({
                 messageId: message.id,
                 content: message.content,
                 channelName: channel.name,
               });
+              messagesFound++;
             }
           });
-        } catch (error) {
-          console.error(
-            `Error fetching messages from channel ${channel.name}:`,
-            error
-          );
+
+          // Update progress for large channels every 500 messages
+          if (messagesFound > 0 && messagesFound % 500 === 0) {
+            await interaction.editReply(
+              `Searching channel ${processedChannels}/${totalChannels}: #${channel.name}\n` +
+                `Messages found in this channel: ${messagesFound}\n` +
+                `Total messages found: ${results.length}`
+            );
+          }
+
+          // Break if we've found more than 100 matches to avoid rate limits
+          if (results.length > 100) {
+            await interaction.editReply(
+              "Search stopped: Found more than 100 matching messages. Please refine your search criteria."
+            );
+            return;
+          }
         }
-      })
-    );
+      } catch (error) {
+        console.error(
+          `Error fetching messages from channel ${channel.name}:`,
+          error
+        );
+        // Continue with other channels if one fails
+        await interaction.editReply(
+          `Error searching in #${channel.name}, continuing with other channels...\n` +
+            `Progress: ${processedChannels}/${totalChannels} channels searched`
+        );
+      }
+    }
 
     if (results.length === 0) {
       await interaction.editReply(

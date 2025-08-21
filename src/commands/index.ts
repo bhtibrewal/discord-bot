@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { execute as searchExecute } from "./search.ts";
+import { execute as searchExecute } from "./search";
 
 class CommandHandler {
   private commands: Map<string, any>;
