@@ -1,0 +1,28 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "description": "A simple Discord bot",
+  "main": "src/bot.ts",
+  "type": "module",
+  "scripts": {
+    "start": "ts-node src/bot.ts",
+    "build": "tsc",
+    "deploy-command": "node src/deploy-commands.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "dotenv": "^17.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
